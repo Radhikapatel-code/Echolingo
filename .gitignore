@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+# Echolingo temporary files
+temp_*.mp3
+temp_audio.wav
+dubbed_audio.mp3
+subtitles.srt
+output_video.mp4
+# Video files
+*.mp4
+*.wav
