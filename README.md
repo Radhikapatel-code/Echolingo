@@ -94,6 +94,21 @@ FFmpeg Subtitle Burn-in
 ↓
 Final Dubbed Video
 
+---
+## Preview
+
+original video 
+https://github.com/user-attachments/assets/0921af69-d25e-4523-8e70-78e2f7a4228e
+
+interface 
+<img width="1912" height="943" alt="image" src="https://github.com/user-attachments/assets/08227d52-ee42-4aeb-a5d7-cca39931e306" />
+<img width="1919" height="606" alt="image" src="https://github.com/user-attachments/assets/155aadd5-b0d5-4ebb-b2af-81956b36feaf" />
+<img width="1898" height="877" alt="image" src="https://github.com/user-attachments/assets/bdc0c09d-953e-4826-a6cf-350cc900be82" />
+
+
+dubbed video
+https://github.com/user-attachments/assets/71aac386-b4c2-4883-b54f-a329afd79c22
+
 
 ---
 
