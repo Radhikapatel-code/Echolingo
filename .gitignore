@@ -1,14 +1,76 @@
+# ==============================
 # Python
+# ==============================
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-# Echolingo temporary files
-temp_*.mp3
-temp_audio.wav
-dubbed_audio.mp3
-subtitles.srt
-output_video.mp4
-# Video files
-*.mp4
+*.log
+
+# ==============================
+# Virtual Environment
+# ==============================
+venv/
+.env/
+
+# ==============================
+# Audio / Video Temp Files
+# ==============================
 *.wav
+*.mp3
+*.aac
+*.ogg
+*.flac
+*.m4a
+*.srt
+
+# Temporary video outputs
+temp_video.mp4
+output.mp4
+echolingo_output.mp4
+
+# ==============================
+# Whisper / Torch Cache
+# ==============================
+.cache/
+.whisper/
+torch_cache/
+*.pt
+
+# ==============================
+# Streamlit
+# ==============================
+.streamlit/
+.streamlit/secrets.toml
+
+# ==============================
+# FFmpeg / Media
+# ==============================
+*.tmp
+
+# ==============================
+# VS Code
+# ==============================
+.vscode/
+*.code-workspace
+
+# ==============================
+# OS Junk
+# ==============================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==============================
+# Test / Input Files
+# ==============================
+input.mp4
+test.mp4
+
+# ==============================
+# FFmpeg binaries (DO NOT COMMIT)
+# ==============================
+ffmpeg.exe
+ffprobe.exe
+ffplay.exe
+ffmpeg/
