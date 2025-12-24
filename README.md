@@ -74,4 +74,71 @@ Language | Python 3.11 |
 ---
 
 ## 🧩 High-Level Architecture
+Input Video
+↓
+FFmpeg → Audio Extraction
+↓
+Whisper → Transcription
+↓
+Translation
+↓
+Text-to-Speech
+↓
+Smart Speed Adjustment
+↓
+Audio Overlay
+↓
+Optional Subtitle Generation (SRT)
+↓
+FFmpeg Subtitle Burn-in
+↓
+Final Dubbed Video
 
+
+---
+
+## 🧪 How to Run Locally
+
+### Prerequisites
+- Python **3.10 or 3.11**
+- FFmpeg installed and available in system PATH
+
+### Install Dependencies
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
+## Usage
+
+Upload an MP4 video
+
+Select the target dub language
+
+(Optional) Enable captions and select caption language
+
+Generate and download the dubbed video
+
+## 📌 Design Decisions & Trade-offs
+
+Speed adjustment over trimming
+Preserves full sentence meaning while maintaining sync
+
+FFmpeg-based subtitles
+Avoids font and platform inconsistencies seen with UI overlays
+
+No binaries in repository
+Keeps the project lightweight and professional
+
+## 🔮 Future Enhancements
+
+Higher-quality neural TTS (XTTS / ElevenLabs)
+
+Word-level subtitle highlighting
+
+Dual subtitles (original + translated)
+
+GPU-accelerated transcription
+
+Voice cloning support
+
+Cloud deployment
