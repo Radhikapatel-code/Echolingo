@@ -110,35 +110,27 @@ streamlit run app.py
 ```
 ## Usage
 
-Upload an MP4 video
-
-Select the target dub language
-
-(Optional) Enable captions and select caption language
-
-Generate and download the dubbed video
+- Upload an MP4 video
+- Select the target dub language
+- Optional Enable captions and select caption language
+- Generate and download the dubbed video
 
 ## 📌 Design Decisions & Trade-offs
 
-Speed adjustment over trimming
+- Speed adjustment over trimming
 Preserves full sentence meaning while maintaining sync
 
-FFmpeg-based subtitles
+- FFmpeg-based subtitles
 Avoids font and platform inconsistencies seen with UI overlays
 
-No binaries in repository
+- No binaries in repository
 Keeps the project lightweight and professional
 
 ## 🔮 Future Enhancements
 
-Higher-quality neural TTS (XTTS / ElevenLabs)
-
-Word-level subtitle highlighting
-
-Dual subtitles (original + translated)
-
-GPU-accelerated transcription
-
-Voice cloning support
-
-Cloud deployment
+- Higher-quality neural TTS (XTTS / ElevenLabs)
+- Word-level subtitle highlighting
+- Dual subtitles (original + translated)
+- GPU-accelerated transcription
+- Voice cloning support
+- Cloud deployment
