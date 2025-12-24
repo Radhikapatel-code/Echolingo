@@ -1,158 +1,153 @@
-import whisper
-import moviepy.editor as mp
-from moviepy.config import change_settings
-from googletrans import Translator
-from gtts import gTTS
 import os
-from datetime import timedelta
-import srt
-from pathlib import Path
+import whisper
+import subprocess
+from moviepy import VideoFileClip, AudioFileClip
+from pydub import AudioSegment
+from gtts import gTTS
+from deep_translator import GoogleTranslator
 
-# Configure ImageMagick path for moviepy
-change_settings({"IMAGEMAGICK_BINARY": r"C:\Program Files\ImageMagick-7.1.1-Q16-HDRI\magick.exe"})
 
-def extract_audio(video_path, audio_path):
-    """Extract audio from video."""
-    video = mp.VideoFileClip(video_path)
-    video.audio.write_audiofile(audio_path)
-    video.audio.close()
-    video.close()
+# --------------------------------------------------
+# Timestamp formatter for SRT
+# --------------------------------------------------
+def format_timestamp(seconds: float) -> str:
+    hrs = int(seconds // 3600)
+    mins = int((seconds % 3600) // 60)
+    secs = int(seconds % 60)
+    millis = int((seconds - int(seconds)) * 1000)
+    return f"{hrs:02}:{mins:02}:{secs:02},{millis:03}"
 
-def transcribe_audio(audio_path):
-    """Convert audio to text using Whisper, optimized for Hindi."""
+
+# --------------------------------------------------
+# Generate SRT file
+# --------------------------------------------------
+def generate_srt(segments, target_lang, srt_path):
+    translator = GoogleTranslator(source="auto", target=target_lang)
+
+    with open(srt_path, "w", encoding="utf-8") as f:
+        for i, seg in enumerate(segments, start=1):
+            start = format_timestamp(seg["start"])
+            end = format_timestamp(seg["end"])
+            text = translator.translate(seg["text"])
+
+            f.write(f"{i}\n")
+            f.write(f"{start} --> {end}\n")
+            f.write(f"{text}\n\n")
+
+
+# --------------------------------------------------
+# Smart audio fitting (speed-aware)
+# --------------------------------------------------
+def fit_audio_smart(audio: AudioSegment, target_ms: int) -> AudioSegment:
+    current_ms = len(audio)
+
+    if current_ms <= target_ms:
+        return audio + AudioSegment.silent(target_ms - current_ms)
+
+    speed_factor = min(current_ms / target_ms, 1.35)
+
+    audio = audio.speedup(
+        playback_speed=speed_factor,
+        chunk_size=50,
+        crossfade=10
+    )
+
+    if len(audio) <= target_ms:
+        return audio + AudioSegment.silent(target_ms - len(audio))
+
+    return audio[:target_ms]
+
+
+# --------------------------------------------------
+# MAIN FUNCTION
+# --------------------------------------------------
+def dub_video(
+    video_path: str,
+    target_lang: str,
+    output_path: str = "output.mp4",
+    captions: bool = False,
+    caption_lang: str = "en"
+):
+    video = VideoFileClip(video_path)
+    duration_ms = int(video.duration * 1000)
+
+    backbone = AudioSegment.silent(duration=duration_ms)
+
+    extracted_audio = "extracted.wav"
+    video.audio.write_audiofile(
+        extracted_audio,
+        fps=16000,
+        nbytes=2,
+        codec="pcm_s16le",
+        logger=None
+    )
+
     model = whisper.load_model("base")
-    result = model.transcribe(audio_path, language="es", verbose=False)
-    return result["segments"]
+    result = model.transcribe(extracted_audio, fp16=False)
+    segments = result["segments"]
 
-def translate_text(segments, target_lang):
-    """Translate text to target language."""
-    translator = Translator()
-    translated_segments = []
-    for segment in segments:
-        translated_text = translator.translate(segment["text"], dest=target_lang).text
-        translated_segments.append({
-            "start": segment["start"],
-            "end": segment["end"],
-            "text": translated_text
-        })
-    return translated_segments
+    srt_file = None
+    if captions:
+        srt_file = "subtitles.srt"
+        generate_srt(segments, caption_lang, srt_file)
 
-def generate_dubbed_audio(segments, target_lang, audio_output):
-    """Create dubbed audio from text."""
-    tts_clips = []
-    for segment in segments:
-        tts = gTTS(text=segment["text"], lang=target_lang, slow=False)
-        temp_audio = f"temp_{segment['start']}.mp3"
-        tts.save(temp_audio)
-        audio_clip = mp.AudioFileClip(temp_audio).subclip(0, segment["end"] - segment["start"])
-        tts_clips.append((audio_clip, segment["start"]))
-        audio_clip.close()  # Close clip before deleting file
-        try:
-            os.remove(temp_audio)
-        except PermissionError:
-            print(f"Warning: Could not delete {temp_audio} (file in use). It will be cleaned up later.")
-    
-    # Create a silent audio clip for the full duration
-    full_duration = max(segment["end"] for segment in segments)
-    silent_audio = mp.AudioClip(lambda t: [0, 0], duration=full_duration, fps=44100)
-    
-    # Composite audio clips with proper timing
-    audio_clips = [silent_audio] + [clip.set_start(start) for clip, start in tts_clips]
-    final_audio = mp.CompositeAudioClip(audio_clips)
-    final_audio.write_audiofile(audio_output, fps=44100)
-    
-    # Clean up
-    silent_audio.close()
-    final_audio.close()
-    for clip, _ in tts_clips:
-        clip.close()
+    for i, seg in enumerate(segments):
+        start_ms = int(seg["start"] * 1000)
+        end_ms = int(seg["end"] * 1000)
+        target_ms = end_ms - start_ms
+        if target_ms <= 0:
+            continue
 
-def generate_subtitles(segments, subtitle_path):
-    """Create SRT subtitle file."""
-    subtitles = []
-    for i, segment in enumerate(segments, 1):
-        start = timedelta(seconds=segment["start"])
-        end = timedelta(seconds=segment["end"])
-        subtitle = srt.Subtitle(index=i, start=start, end=end, content=segment["text"])
-        subtitles.append(subtitle)
-    
-    with open(subtitle_path, "w", encoding="utf-8") as f:
-        f.write(srt.compose(subtitles))
+        translated = GoogleTranslator(
+            source="auto",
+            target=target_lang
+        ).translate(seg["text"])
 
-def merge_video_audio_subtitles(video_path, dubbed_audio_path, subtitle_path, output_path):
-    """Combine video, dubbed audio, and subtitles."""
-    video = mp.VideoFileClip(video_path)
-    dubbed_audio = mp.AudioFileClip(dubbed_audio_path)
-    video = video.set_audio(dubbed_audio)
-    
-    subtitle_clips = []
-    for i, subtitle in enumerate(srt.parse(Path(subtitle_path).read_text(encoding="utf-8")), 1):
-        try:
-            txt_clip = mp.TextClip(
-                subtitle.content,
-                fontsize=24,
-                color="white",
-                stroke_color="black",
-                stroke_width=1,
-                font="Arial",
-                size=video.size
-            )
-            txt_clip = txt_clip.set_position(("center", video.h - 50)).set_start(subtitle.start.total_seconds()).set_end(subtitle.end.total_seconds())
-            subtitle_clips.append(txt_clip)
-        except Exception as e:
-            print(f"Warning: Failed to create subtitle clip {i}: {e}")
-    
-    final_video = mp.CompositeVideoClip([video] + subtitle_clips)
-    final_video.write_videofile(output_path, codec="libx264", audio_codec="aac")
-    
-    # Clean up
+        tts_file = f"tts_{i}.mp3"
+        gTTS(text=translated, lang=target_lang).save(tts_file)
+
+        speech = AudioSegment.from_mp3(tts_file)
+        speech = fit_audio_smart(speech, target_ms)
+
+        backbone = backbone.overlay(speech, position=start_ms)
+        os.remove(tts_file)
+
+    final_audio = "final.wav"
+    backbone.export(final_audio, format="wav")
+
+    dubbed_audio = AudioFileClip(final_audio)
+    video = video.with_audio(dubbed_audio)
+    temp_video = "temp_video.mp4"
+
+    video.write_videofile(
+        temp_video,
+        codec="libx264",
+        audio_codec="aac",
+        fps=video.fps,
+        logger=None
+    )
+
     video.close()
     dubbed_audio.close()
-    for clip in subtitle_clips:
-        clip.close()
 
-def process_video(video_path, target_lang, output_path):
-    """Process the video through all steps."""
-    audio_path = "temp_audio.wav"
-    dubbed_audio_path = "dubbed_audio.mp3"
-    subtitle_path = "subtitles.srt"
-    
-    try:
-        print("Extracting audio...")
-        extract_audio(video_path, audio_path)
-        print("Transcribing audio...")
-        segments = transcribe_audio(audio_path)
-        print("Translating text...")
-        translated_segments = translate_text(segments, target_lang)
-        print("Generating dubbed audio...")
-        generate_dubbed_audio(translated_segments, target_lang, dubbed_audio_path)
-        print("Generating subtitles...")
-        generate_subtitles(translated_segments, subtitle_path)
-        print("Merging video, audio, and subtitles...")
-        merge_video_audio_subtitles(video_path, dubbed_audio_path, subtitle_path, output_path)
-        print(f"Done! Output saved to {output_path}")
-    
-    finally:
-        # Clean up temporary files
-        for path in [audio_path, dubbed_audio_path, subtitle_path]:
-            if os.path.exists(path):
-                try:
-                    os.remove(path)
-                except PermissionError:
-                    print(f"Warning: Could not delete {path} (file in use). Try closing other programs or retrying.")
-        # Clean up any remaining temp_*.mp3 files
-        for temp_file in Path(".").glob("temp_*.mp3"):
-            try:
-                temp_file.unlink()
-            except PermissionError:
-                print(f"Warning: Could not delete {temp_file} (file in use). Try closing other programs or retrying.")
-
-if __name__ == "__main__":
-    video_input = "sample_video.mp4"  # Replace with your Hindi video file name
-    target_language = "en"  # Translate and dub to English
-    video_output = "output_video.mp4"
-    
-    if not os.path.exists(video_input):
-        print(f"Error: Video file {video_input} not found.")
+    # --------------------------------------------------
+    # Burn subtitles with FFmpeg (SAFE WAY)
+    # --------------------------------------------------
+    if captions and srt_file:
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-i", temp_video,
+                "-vf", f"subtitles={srt_file}",
+                output_path
+            ],
+            check=True
+        )
+        os.remove(temp_video)
+        os.remove(srt_file)
     else:
-        process_video(video_input, target_language, video_output)
+        os.rename(temp_video, output_path)
+
+    os.remove(final_audio)
+    os.remove(extracted_audio)
