@@ -110,11 +110,17 @@ if uploaded_file:
                 st.video(output_path)
 
                 with open(output_path, "rb") as f:
-                    st.download_button(
-                        "⬇️ Download Video",
-                        f,
-                        file_name="echolingo_dubbed.mp4",
-                    )
+                    video_bytes = f.read()
+
+                st.download_button(
+                    "⬇️ Download Video",
+                    data=video_bytes,
+                    file_name="echolingo_dubbed.mp4",
+                )
+
+                # Clean up temporary upload directory
+                import shutil
+                shutil.rmtree(upload_dir, ignore_errors=True)
 
             except DubbingError as e:
                 st.error(f"❌ Dubbing failed: {e}")
