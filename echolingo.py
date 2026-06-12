@@ -401,8 +401,8 @@ def compose_video(
 
         # Burn subtitles if requested
         if srt_path and os.path.exists(srt_path):
-            # Normalize path for FFmpeg subtitle filter (forward slashes, escape colons)
-            srt_ffmpeg = srt_path.replace("\\", "/").replace(":", "\\\\:")
+            # Normalize path for FFmpeg subtitle filter (forward slashes, escape colons and spaces)
+            srt_ffmpeg = srt_path.replace("\\", "/").replace(":", "\\\\:").replace(" ", "\\\\ ")
             subprocess.run(
                 [
                     "ffmpeg",
@@ -410,7 +410,7 @@ def compose_video(
                     "-i",
                     temp_video_path,
                     "-vf",
-                    f"subtitles='{srt_ffmpeg}'",
+                    f"subtitles={srt_ffmpeg}",
                     output_path,
                 ],
                 check=True,
