@@ -5,3 +5,5 @@ pydub==0.25.1
 gTTS==2.5.4
 deep-translator==1.11.4
 ffmpeg-python==0.2.0
+
+audioop-lts==0.2.2
