@@ -1,9 +1,19 @@
+---
+title: Echolingo
+emoji: 🗣️
+colorFrom: blue
+colorTo: indigo
+sdk: streamlit
+sdk_version: 1.44.1
+app_file: app.py
+pinned: false
+---
 # 🎙️ Echolingo
 
 [![CI](https://github.com/Radhikapatel-code/Echolingo/actions/workflows/ci.yml/badge.svg)](https://github.com/Radhikapatel-code/Echolingo/actions/workflows/ci.yml)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/Radhikapatel-code/Echolingo)
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/raddhika/Echolingo)
 
 ## AI-Powered Multilingual Video Dubbing & Captioning Platform
 
