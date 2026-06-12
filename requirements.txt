@@ -1,8 +1,7 @@
-streamlit
-openai-whisper
-moviepy>=2.0.0
-pydub
-gtts
-deep-translator
-ffmpeg-python
-torch
+streamlit==1.44.1
+openai-whisper==20240930
+moviepy==2.1.2
+pydub==0.25.1
+gTTS==2.5.4
+deep-translator==1.11.4
+ffmpeg-python==0.2.0

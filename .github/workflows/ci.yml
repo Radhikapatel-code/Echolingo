@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Ruff lint check
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+  import-check:
+    name: Dependency & Import Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install CPU torch
+        run: pip install -r requirements-cpu.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify module imports
+        run: python -c "from echolingo import dub_video, SUPPORTED_LANGUAGES, DubbingError; print(f'OK — {len(SUPPORTED_LANGUAGES)} languages loaded')"

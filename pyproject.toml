@@ -1,0 +1,19 @@
+[project]
+name = "echolingo"
+version = "1.0.0"
+description = "AI-powered multilingual video dubbing and captioning platform"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Radhika Patel"},
+]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP"]
+
+[tool.ruff.format]
+quote-style = "double"

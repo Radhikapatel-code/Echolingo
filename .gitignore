@@ -11,6 +11,7 @@ __pycache__/
 # Virtual Environment
 # ==============================
 venv/
+.venv/
 .env/
 
 # ==============================
@@ -24,10 +25,11 @@ venv/
 *.m4a
 *.srt
 
-# Temporary video outputs
-temp_video.mp4
-output.mp4
-echolingo_output.mp4
+# Video files — media should never be committed
+*.mp4
+*.avi
+*.mkv
+*.mov
 
 # ==============================
 # Whisper / Torch Cache
@@ -41,18 +43,36 @@ torch_cache/
 # Streamlit
 # ==============================
 .streamlit/
-.streamlit/secrets.toml
 
 # ==============================
-# FFmpeg / Media
+# FFmpeg binaries (DO NOT COMMIT)
 # ==============================
+ffmpeg.exe
+ffprobe.exe
+ffplay.exe
+ffmpeg/
 *.tmp
 
 # ==============================
-# VS Code
+# Coverage Artifacts
+# ==============================
+.early.coverage/
+.coverage
+htmlcov/
+*.cover
+
+# ==============================
+# Temp Processing Directories
+# ==============================
+temp_*/
+echolingo_*/
+
+# ==============================
+# VS Code / IDE
 # ==============================
 .vscode/
 *.code-workspace
+.idea/
 
 # ==============================
 # OS Junk
@@ -62,15 +82,6 @@ Thumbs.db
 desktop.ini
 
 # ==============================
-# Test / Input Files
+# Environment
 # ==============================
-input.mp4
-test.mp4
-
-# ==============================
-# FFmpeg binaries (DO NOT COMMIT)
-# ==============================
-ffmpeg.exe
-ffprobe.exe
-ffplay.exe
-ffmpeg/
+.env
