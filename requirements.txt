@@ -1,9 +1,10 @@
 streamlit==1.44.1
-git+https://github.com/openai/whisper.git
+git+https://github.com/openai/whisper.git@04f449b8a437f1bbd3dba5c9f826aca972e7709a
 moviepy==2.1.2
 pydub==0.25.1
 gTTS==2.5.4
 deep-translator==1.11.4
 ffmpeg-python==0.2.0
 
+# audioop backport required by pydub on Python 3.13+
 audioop-lts==0.2.2
