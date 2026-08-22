@@ -19,7 +19,6 @@ import os
 import shutil
 import subprocess
 import tempfile
-from pathlib import Path
 
 import whisper
 from deep_translator import GoogleTranslator
@@ -28,8 +27,6 @@ from moviepy import AudioFileClip, VideoFileClip
 from pydub import AudioSegment
 
 logger = logging.getLogger(__name__)
-
-# ── Pipeline Constants ──────────────────────────────────────────────────────
 
 MAX_SPEED_FACTOR: float = 1.35
 """Upper bound for speech speedup — beyond 1.35x speech becomes uncomfortable
@@ -47,58 +44,89 @@ MAX_UPLOAD_SIZE_MB: int = 50
 WHISPER_SAMPLE_RATE: int = 16000
 """Audio sample rate expected by the Whisper model (16 kHz mono)."""
 
-# ── Supported Languages ────────────────────────────────────────────────────
-
 SUPPORTED_LANGUAGES: dict[str, str] = {
     "af": "Afrikaans",
+    "am": "Amharic",
     "ar": "Arabic",
+    "bg": "Bulgarian",
     "bn": "Bengali",
     "bs": "Bosnian",
     "ca": "Catalan",
     "cs": "Czech",
+    "cy": "Welsh",
     "da": "Danish",
     "de": "German",
     "el": "Greek",
     "en": "English",
     "es": "Spanish",
+    "et": "Estonian",
+    "eu": "Basque",
     "fi": "Finnish",
     "fr": "French",
+    "gl": "Galician",
+    "gu": "Gujarati",
+    "ha": "Hausa",
     "hi": "Hindi",
     "hr": "Croatian",
     "hu": "Hungarian",
     "id": "Indonesian",
+    "is": "Icelandic",
     "it": "Italian",
+    "iw": "Hebrew",
     "ja": "Japanese",
+    "jw": "Javanese",
+    "km": "Khmer",
+    "kn": "Kannada",
     "ko": "Korean",
+    "la": "Latin",
+    "lt": "Lithuanian",
+    "lv": "Latvian",
+    "ml": "Malayalam",
+    "mr": "Marathi",
     "ms": "Malay",
+    "my": "Myanmar (Burmese)",
+    "ne": "Nepali",
     "nl": "Dutch",
     "no": "Norwegian",
+    "pa": "Punjabi (Gurmukhi)",
     "pl": "Polish",
     "pt": "Portuguese",
     "ro": "Romanian",
     "ru": "Russian",
+    "si": "Sinhala",
+    "sk": "Slovak",
+    "sq": "Albanian",
+    "sr": "Serbian",
+    "su": "Sundanese",
     "sv": "Swedish",
+    "sw": "Swahili",
     "ta": "Tamil",
     "te": "Telugu",
     "th": "Thai",
+    "tl": "Filipino",
     "tr": "Turkish",
     "uk": "Ukrainian",
+    "ur": "Urdu",
     "vi": "Vietnamese",
-    "zh-cn": "Chinese (Simplified)",
-    "zh-tw": "Chinese (Traditional)",
+    "zh-CN": "Chinese (Simplified)",
+    "zh-TW": "Chinese (Traditional)",
 }
 """Languages supported by both gTTS and deep-translator.
 Constrained to the gTTS subset since it is the narrower API."""
-
-
-# ── Custom Exception ────────────────────────────────────────────────────────
 
 
 class DubbingError(Exception):
     """Raised when any stage of the dubbing pipeline fails."""
 
 
-# ── Utility Functions ───────────────────────────────────────────────────────
+def _normalize_lang_code(code: str) -> str:
+    """Normalize language code for deep-translator compatibility."""
+    c_lower = code.lower()
+    if c_lower in ("zh-cn", "zh"):
+        return "zh-CN"
+    if c_lower == "zh-tw":
+        return "zh-TW"
+    return code
 
 
 def format_timestamp(seconds: float) -> str:
@@ -149,9 +177,6 @@ def fit_audio_smart(audio: AudioSegment, target_ms: int) -> AudioSegment:
         return audio + AudioSegment.silent(duration=target_ms - len(audio))
 
     return audio[:target_ms]
-
-
-# ── Pipeline Stage Functions ────────────────────────────────────────────────
 
 
 def extract_audio(video_path: str, work_dir: str) -> str:
@@ -231,7 +256,8 @@ def translate_segments(
     Raises:
         DubbingError: If translation fails for any segment.
     """
-    translator = GoogleTranslator(source="auto", target=target_lang)
+    dt_code = _normalize_lang_code(target_lang)
+    translator = GoogleTranslator(source="auto", target=dt_code)
     translated: list[dict] = []
     i = 0
 
@@ -328,7 +354,8 @@ def generate_srt(
     Raises:
         DubbingError: If subtitle generation fails.
     """
-    translator = GoogleTranslator(source="auto", target=target_lang)
+    dt_code = _normalize_lang_code(target_lang)
+    translator = GoogleTranslator(source="auto", target=dt_code)
 
     try:
         with open(srt_path, "w", encoding="utf-8") as f:
@@ -336,7 +363,6 @@ def generate_srt(
                 start = format_timestamp(seg["start"])
                 end = format_timestamp(seg["end"])
 
-                # Use pre-translated text if available for this language
                 if "translated_text" in seg and seg.get("translated_text"):
                     text = seg["translated_text"]
                 else:
@@ -380,10 +406,8 @@ def compose_video(
     temp_video_path = os.path.join(work_dir, "temp_video.mp4")
 
     try:
-        # Export dubbed audio to WAV
         audio_segment.export(final_audio_path, format="wav")
 
-        # Mux audio with video
         video = VideoFileClip(video_path)
         dubbed_audio = AudioFileClip(final_audio_path)
         video = video.with_audio(dubbed_audio)
@@ -399,9 +423,7 @@ def compose_video(
         video.close()
         dubbed_audio.close()
 
-        # Burn subtitles if requested
         if srt_path and os.path.exists(srt_path):
-            # Normalize path for FFmpeg subtitle filter (forward slashes, escape colons and spaces)
             srt_ffmpeg = srt_path.replace("\\", "/").replace(":", "\\\\:").replace(" ", "\\\\ ")
             subprocess.run(
                 [
@@ -428,9 +450,6 @@ def compose_video(
         raise DubbingError(f"FFmpeg subtitle burn failed: {e.stderr}") from e
     except Exception as e:
         raise DubbingError(f"Video composition failed: {e}") from e
-
-
-# ── Main Entry Point ────────────────────────────────────────────────────────
 
 
 def dub_video(
@@ -463,7 +482,6 @@ def dub_video(
         FileNotFoundError: If the input video file doesn't exist.
         ValueError: If the target language is not supported.
     """
-    # ── Input validation ────────────────────────────────────
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video not found: {video_path}")
     if target_lang not in SUPPORTED_LANGUAGES:
@@ -478,7 +496,6 @@ def dub_video(
     logger.info("Pipeline started -- work_dir=%s", work_dir)
 
     try:
-        # 1. Load model if not provided
         if whisper_model is None:
             logger.warning(
                 "Loading Whisper model on-the-fly. "
@@ -486,36 +503,28 @@ def dub_video(
             )
             whisper_model = whisper.load_model("base")
 
-        # 2. Extract audio
         audio_path = extract_audio(video_path, work_dir)
 
-        # 3. Transcribe
         segments = transcribe(audio_path, whisper_model)
         if not segments:
             raise DubbingError("No speech detected in the video.")
 
-        # 4. Translate
         translated = translate_segments(segments, target_lang)
 
-        # 5. Get video duration for audio backbone
         video = VideoFileClip(video_path)
         duration_ms = int(video.duration * 1000)
         video.close()
 
-        # 6. Generate dubbed TTS audio
         dubbed_audio = generate_tts_audio(translated, target_lang, duration_ms, work_dir)
 
-        # 7. Generate SRT if captions requested
         srt_path = None
         if captions:
             srt_path = os.path.join(work_dir, "subtitles.srt")
-            # If caption language differs from dub language, re-translate for subtitles
             if caption_lang == target_lang:
                 generate_srt(translated, caption_lang, srt_path)
             else:
                 generate_srt(segments, caption_lang, srt_path)
 
-        # 8. Compose final video
         result = compose_video(video_path, dubbed_audio, output_path, work_dir, srt_path)
         logger.info("Pipeline completed -- output=%s", result)
         return result
@@ -527,6 +536,5 @@ def dub_video(
     except Exception as e:
         raise DubbingError(f"Pipeline failed unexpectedly: {e}") from e
     finally:
-        # ALWAYS clean up temp directory -- even on crash
         shutil.rmtree(work_dir, ignore_errors=True)
         logger.info("Cleaned up working directory: %s", work_dir)

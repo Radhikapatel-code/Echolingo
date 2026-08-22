@@ -17,7 +17,7 @@ pinned: false
 
 ## AI-Powered Multilingual Video Dubbing & Captioning Platform
 
-Echolingo is an end-to-end AI pipeline that automatically **dubs videos into 36 languages** and optionally **adds translated captions**, while preserving sentence completeness, timing, and audio clarity.
+Echolingo is an end-to-end AI pipeline that automatically **dubs videos into 50+ languages (65 supported)** and optionally **adds translated captions**, while preserving sentence completeness, timing, and audio clarity.
 
 Unlike simple AI demos, Echolingo tackles **real-world engineering challenges** in audio-video processing — synchronization, timing mismatches from translation expansion, and robust temp file management for concurrent usage.
 
@@ -51,7 +51,7 @@ When dubbing videos into other languages:
 - Prevents audio overlap and pitch distortion using WSOLA-based speedup
 
 ### 📝 Optional Multi-Language Captions
-- Generate captions in any of 36 supported languages
+- Generate captions in any of 65 supported languages
 - Subtitles are **burned directly into the video** via FFmpeg
 - Works on all video players (no external subtitle files needed)
 
@@ -85,21 +85,29 @@ When dubbing videos into other languages:
 
 ---
 
-## 🌍 Supported Languages (36)
+## 🌍 Supported Languages (65)
 
 | | | | |
 |---|---|---|---|
-| Afrikaans (af) | Arabic (ar) | Bengali (bn) | Bosnian (bs) |
-| Catalan (ca) | Chinese Simplified (zh-cn) | Chinese Traditional (zh-tw) | Croatian (hr) |
-| Czech (cs) | Danish (da) | Dutch (nl) | English (en) |
-| Finnish (fi) | French (fr) | German (de) | Greek (el) |
-| Hindi (hi) | Hungarian (hu) | Indonesian (id) | Italian (it) |
-| Japanese (ja) | Korean (ko) | Malay (ms) | Norwegian (no) |
-| Polish (pl) | Portuguese (pt) | Romanian (ro) | Russian (ru) |
-| Spanish (es) | Swedish (sv) | Tamil (ta) | Telugu (te) |
-| Thai (th) | Turkish (tr) | Ukrainian (uk) | Vietnamese (vi) |
+| Afrikaans (af) | Filipino (tl) | Khmer (km) | Sinhala (si) |
+| Albanian (sq) | Finnish (fi) | Korean (ko) | Slovak (sk) |
+| Amharic (am) | French (fr) | Latin (la) | Spanish (es) |
+| Arabic (ar) | Galician (gl) | Latvian (lv) | Sundanese (su) |
+| Basque (eu) | German (de) | Lithuanian (lt) | Swahili (sw) |
+| Bengali (bn) | Greek (el) | Malay (ms) | Swedish (sv) |
+| Bosnian (bs) | Gujarati (gu) | Malayalam (ml) | Tamil (ta) |
+| Bulgarian (bg) | Hausa (ha) | Marathi (mr) | Telugu (te) |
+| Catalan (ca) | Hebrew (iw) | Myanmar (Burmese) (my) | Thai (th) |
+| Chinese (Simplified) (zh-CN) | Hindi (hi) | Nepali (ne) | Turkish (tr) |
+| Chinese (Traditional) (zh-TW) | Hungarian (hu) | Norwegian (no) | Ukrainian (uk) |
+| Croatian (hr) | Icelandic (is) | Polish (pl) | Urdu (ur) |
+| Czech (cs) | Indonesian (id) | Portuguese (pt) | Vietnamese (vi) |
+| Danish (da) | Italian (it) | Punjabi (Gurmukhi) (pa) | Welsh (cy) |
+| Dutch (nl) | Japanese (ja) | Romanian (ro) | |
+| English (en) | Javanese (jw) | Russian (ru) | |
+| Estonian (et) | Kannada (kn) | Serbian (sr) | |
 
-> Language support is constrained to the **gTTS** subset (the narrower API). All languages are also supported by deep-translator for subtitle generation.
+> Language support encompasses all overlapping languages supported by both **gTTS** and **Google Translate (deep-translator)**, matching the 50+ language capability of the underlying AI stack.
 
 ---
 
@@ -134,7 +142,7 @@ Measured on a standard CPU machine (no GPU), using Whisper `base` model:
 ## 🌐 Live Demo
 
 Try the live version of Echolingo deployed on Hugging Face Spaces:  
-👉 **[Echolingo on Hugging Face Spaces]([https://huggingface.co/spaces/Radhikapatel-code/Echolingo](https://huggingface.co/spaces/raddhika/Echolingo))**
+👉 **[Echolingo on Hugging Face Spaces](https://huggingface.co/spaces/raddhika/Echolingo)**
 
 *(Note: The live demo runs on CPU, so processing times will be slower than a local GPU setup.)*
 

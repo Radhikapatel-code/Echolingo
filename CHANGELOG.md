@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **File Management**: `app.py` now aggressively cleans up the temporary upload directory after serving the generated video.
 
 ### Changed
+- **Expanded Language Support**: Expanded `SUPPORTED_LANGUAGES` from 36 to 65 verified languages across Whisper, Google Translate, and gTTS.
 - **Pipeline Architecture**: Refactored the monolithic script into isolated, testable pipeline stages (`extract_audio`, `transcribe`, `translate_segments`, `generate_tts_audio`, `compose_video`).
 - **Temporary Files**: Eliminated hardcoded file names in the working directory. All intermediate files are now written to isolated directories created via `tempfile.mkdtemp()`.
 - **Whisper Initialization**: Cached the Whisper model in Streamlit using `@st.cache_resource` so it only loads once per session rather than on every button click.

@@ -9,19 +9,18 @@ from __future__ import annotations
 
 import logging
 import os
+import shutil
 import tempfile
 
 import streamlit as st
 import whisper
 
 from echolingo import (
-    SUPPORTED_LANGUAGES,
     MAX_UPLOAD_SIZE_MB,
+    SUPPORTED_LANGUAGES,
     DubbingError,
     dub_video,
 )
-
-# ── Logging ─────────────────────────────────────────────────────────────────
 
 logging.basicConfig(
     level=logging.INFO,
@@ -29,12 +28,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ── Page Config ─────────────────────────────────────────────────────────────
-
 st.set_page_config(page_title="Echolingo AI", page_icon="🎙️")
-
-
-# ── Cached Model Loading ───────────────────────────────────────────────────
 
 
 @st.cache_resource
@@ -48,26 +42,21 @@ def load_whisper_model() -> whisper.Whisper:
     return whisper.load_model("base")
 
 
-# ── UI Layout ───────────────────────────────────────────────────────────────
-
 st.title("🎙️ Echolingo – AI Video Dubber")
-st.markdown("Dub your video into **36 languages** and optionally add translated captions.")
-
-# ── File Upload ─────────────────────────────────────────────────────────────
+st.markdown(
+    "Dub your video into **50+ languages (65 supported)** and optionally add translated captions."
+)
 
 uploaded_file = st.file_uploader("Upload MP4 Video", type=["mp4"])
 
 if uploaded_file:
-    # ── File size validation ────────────────────────────────
     file_size_mb = uploaded_file.size / (1024 * 1024)
     if file_size_mb > MAX_UPLOAD_SIZE_MB:
         st.error(
-            f"❌ File too large ({file_size_mb:.1f} MB). "
-            f"Maximum allowed: {MAX_UPLOAD_SIZE_MB} MB."
+            f"❌ File too large ({file_size_mb:.1f} MB). Maximum allowed: {MAX_UPLOAD_SIZE_MB} MB."
         )
         st.stop()
 
-    # ── Save to unique temp path (no collisions) ────────────
     upload_dir = tempfile.mkdtemp(prefix="echolingo_upload_")
     input_path = os.path.join(upload_dir, "input.mp4")
     output_path = os.path.join(upload_dir, "output.mp4")
@@ -77,13 +66,18 @@ if uploaded_file:
 
     st.video(input_path)
 
-    # ── Language selection ──────────────────────────────────
     lang_options = {f"{name} ({code})": code for code, name in SUPPORTED_LANGUAGES.items()}
+    default_index = (
+        list(SUPPORTED_LANGUAGES.keys()).index("es") if "es" in SUPPORTED_LANGUAGES else 0
+    )
 
-    target_display = st.selectbox("Select Dub Language", list(lang_options.keys()), index=9)
+    target_display = st.selectbox(
+        "Select Dub Language",
+        list(lang_options.keys()),
+        index=default_index,
+    )
     target_lang = lang_options[target_display]
 
-    # ── Caption options ─────────────────────────────────────
     add_captions = st.checkbox("📝 Add captions to video")
 
     caption_lang = target_lang
@@ -91,7 +85,6 @@ if uploaded_file:
         caption_display = st.selectbox("Select Caption Language", list(lang_options.keys()))
         caption_lang = lang_options[caption_display]
 
-    # ── Process ─────────────────────────────────────────────
     if st.button("🎙️ Generate Dubbed Video"):
         model = load_whisper_model()
 
@@ -118,8 +111,6 @@ if uploaded_file:
                     file_name="echolingo_dubbed.mp4",
                 )
 
-                # Clean up temporary upload directory
-                import shutil
                 shutil.rmtree(upload_dir, ignore_errors=True)
 
             except DubbingError as e:
