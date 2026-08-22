@@ -134,7 +134,7 @@ Measured on a standard CPU machine (no GPU), using Whisper `base` model:
 ## 🌐 Live Demo
 
 Try the live version of Echolingo deployed on Hugging Face Spaces:  
-👉 **[Echolingo on Hugging Face Spaces](https://huggingface.co/spaces/Radhikapatel-code/Echolingo)**
+👉 **[Echolingo on Hugging Face Spaces]([https://huggingface.co/spaces/Radhikapatel-code/Echolingo](https://huggingface.co/spaces/raddhika/Echolingo))**
 
 *(Note: The live demo runs on CPU, so processing times will be slower than a local GPU setup.)*
 
