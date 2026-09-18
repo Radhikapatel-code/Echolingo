@@ -46,4 +46,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Verify module imports
-        run: python -c "from echolingo import dub_video, SUPPORTED_LANGUAGES, DubbingError; print(f'OK — {len(SUPPORTED_LANGUAGES)} languages loaded')"
+        run: python -c "from echolingo import dub_video, LANGUAGE_CODE_TO_NAME, DubbingError; print(f'OK — {len(LANGUAGE_CODE_TO_NAME)} languages loaded')"
+
+      - name: Verify language configuration
+        run: python -c "from config.languages import SUPPORTED_LANGUAGES; print(f'OK — {len(SUPPORTED_LANGUAGES)} languages configured')"
+
+      - name: Run language validation tests
+        run: python tests/test_languages.py
