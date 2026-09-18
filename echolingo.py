@@ -26,6 +26,8 @@ from gtts import gTTS
 from moviepy import AudioFileClip, VideoFileClip
 from pydub import AudioSegment
 
+from config.languages import SUPPORTED_LANGUAGES, LANGUAGE_CODE_TO_NAME, END_TO_END_LANGUAGES
+
 logger = logging.getLogger(__name__)
 
 MAX_SPEED_FACTOR: float = 1.35
@@ -43,76 +45,6 @@ MAX_UPLOAD_SIZE_MB: int = 50
 
 WHISPER_SAMPLE_RATE: int = 16000
 """Audio sample rate expected by the Whisper model (16 kHz mono)."""
-
-SUPPORTED_LANGUAGES: dict[str, str] = {
-    "af": "Afrikaans",
-    "am": "Amharic",
-    "ar": "Arabic",
-    "bg": "Bulgarian",
-    "bn": "Bengali",
-    "bs": "Bosnian",
-    "ca": "Catalan",
-    "cs": "Czech",
-    "cy": "Welsh",
-    "da": "Danish",
-    "de": "German",
-    "el": "Greek",
-    "en": "English",
-    "es": "Spanish",
-    "et": "Estonian",
-    "eu": "Basque",
-    "fi": "Finnish",
-    "fr": "French",
-    "gl": "Galician",
-    "gu": "Gujarati",
-    "ha": "Hausa",
-    "hi": "Hindi",
-    "hr": "Croatian",
-    "hu": "Hungarian",
-    "id": "Indonesian",
-    "is": "Icelandic",
-    "it": "Italian",
-    "iw": "Hebrew",
-    "ja": "Japanese",
-    "jw": "Javanese",
-    "km": "Khmer",
-    "kn": "Kannada",
-    "ko": "Korean",
-    "la": "Latin",
-    "lt": "Lithuanian",
-    "lv": "Latvian",
-    "ml": "Malayalam",
-    "mr": "Marathi",
-    "ms": "Malay",
-    "my": "Myanmar (Burmese)",
-    "ne": "Nepali",
-    "nl": "Dutch",
-    "no": "Norwegian",
-    "pa": "Punjabi (Gurmukhi)",
-    "pl": "Polish",
-    "pt": "Portuguese",
-    "ro": "Romanian",
-    "ru": "Russian",
-    "si": "Sinhala",
-    "sk": "Slovak",
-    "sq": "Albanian",
-    "sr": "Serbian",
-    "su": "Sundanese",
-    "sv": "Swedish",
-    "sw": "Swahili",
-    "ta": "Tamil",
-    "te": "Telugu",
-    "th": "Thai",
-    "tl": "Filipino",
-    "tr": "Turkish",
-    "uk": "Ukrainian",
-    "ur": "Urdu",
-    "vi": "Vietnamese",
-    "zh-CN": "Chinese (Simplified)",
-    "zh-TW": "Chinese (Traditional)",
-}
-"""Languages supported by both gTTS and deep-translator.
-Constrained to the gTTS subset since it is the narrower API."""
 
 
 class DubbingError(Exception):
@@ -484,12 +416,12 @@ def dub_video(
     """
     if not os.path.exists(video_path):
         raise FileNotFoundError(f"Video not found: {video_path}")
-    if target_lang not in SUPPORTED_LANGUAGES:
+    if target_lang not in LANGUAGE_CODE_TO_NAME:
         raise ValueError(
             f"Unsupported language: '{target_lang}'. "
-            f"Choose from: {', '.join(sorted(SUPPORTED_LANGUAGES))}"
+            f"Choose from: {', '.join(sorted(LANGUAGE_CODE_TO_NAME.keys()))}"
         )
-    if captions and caption_lang not in SUPPORTED_LANGUAGES:
+    if captions and caption_lang not in LANGUAGE_CODE_TO_NAME:
         raise ValueError(f"Unsupported caption language: '{caption_lang}'.")
 
     work_dir = tempfile.mkdtemp(prefix="echolingo_")

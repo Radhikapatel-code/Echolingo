@@ -15,9 +15,9 @@ import tempfile
 import streamlit as st
 import whisper
 
+from config.languages import SUPPORTED_LANGUAGES, LANGUAGE_CODE_TO_NAME
 from echolingo import (
     MAX_UPLOAD_SIZE_MB,
-    SUPPORTED_LANGUAGES,
     DubbingError,
     dub_video,
 )
@@ -66,9 +66,9 @@ if uploaded_file:
 
     st.video(input_path)
 
-    lang_options = {f"{name} ({code})": code for code, name in SUPPORTED_LANGUAGES.items()}
+    lang_options = {f"{lang['name']} ({lang['code']})": lang['code'] for lang in SUPPORTED_LANGUAGES}
     default_index = (
-        list(SUPPORTED_LANGUAGES.keys()).index("es") if "es" in SUPPORTED_LANGUAGES else 0
+        next(i for i, lang in enumerate(SUPPORTED_LANGUAGES) if lang['code'] == "es") if any(lang['code'] == "es" for lang in SUPPORTED_LANGUAGES) else 0
     )
 
     target_display = st.selectbox(

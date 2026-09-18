@@ -87,29 +87,73 @@ When dubbing videos into other languages:
 
 ## 🌍 Supported Languages (65)
 
-| | | | |
-|---|---|---|---|
-| Afrikaans (af) | Filipino (tl) | Khmer (km) | Sinhala (si) |
-| Albanian (sq) | Finnish (fi) | Korean (ko) | Slovak (sk) |
-| Amharic (am) | French (fr) | Latin (la) | Spanish (es) |
-| Arabic (ar) | Galician (gl) | Latvian (lv) | Sundanese (su) |
-| Basque (eu) | German (de) | Lithuanian (lt) | Swahili (sw) |
-| Bengali (bn) | Greek (el) | Malay (ms) | Swedish (sv) |
-| Bosnian (bs) | Gujarati (gu) | Malayalam (ml) | Tamil (ta) |
-| Bulgarian (bg) | Hausa (ha) | Marathi (mr) | Telugu (te) |
-| Catalan (ca) | Hebrew (iw) | Myanmar (Burmese) (my) | Thai (th) |
-| Chinese (Simplified) (zh-CN) | Hindi (hi) | Nepali (ne) | Turkish (tr) |
-| Chinese (Traditional) (zh-TW) | Hungarian (hu) | Norwegian (no) | Ukrainian (uk) |
-| Croatian (hr) | Icelandic (is) | Polish (pl) | Urdu (ur) |
-| Czech (cs) | Indonesian (id) | Portuguese (pt) | Vietnamese (vi) |
-| Danish (da) | Italian (it) | Punjabi (Gurmukhi) (pa) | Welsh (cy) |
-| Dutch (nl) | Japanese (ja) | Romanian (ro) | |
-| English (en) | Javanese (jw) | Russian (ru) | |
-| Estonian (et) | Kannada (kn) | Serbian (sr) | |
+Echolingo supports exactly 65 languages end-to-end through the STT → Translation → TTS pipeline.
 
-> Language support encompasses all overlapping languages supported by both **gTTS** and **Google Translate (deep-translator)**, matching the 50+ language capability of the underlying AI stack.
+**Complete Language Matrix**: See [docs/language-support.md](docs/language-support.md) for the full compatibility matrix showing STT, translation, and TTS support for each language.
+
+**Validation**: Run `python tests/test_languages.py` to validate the 65-language configuration.
+
+> Language support is constrained by the intersection of provider capabilities. All 65 languages are supported by OpenAI Whisper (STT), Google Translate (translation), and gTTS (TTS).
 
 ---
+
+## ⚡ Performance Evaluation
+
+### Test Environment
+**NOT BENCHMARKED YET**
+
+The performance benchmark framework has been implemented but not executed due to:
+- Python version incompatibility (requires Python 3.11/3.12, currently using 3.14.7)
+- Missing test data (no sample videos available)
+- Dependency installation issues (PyTorch compatibility)
+
+**Benchmark Framework**: See [benchmarks/benchmark_pipeline.py](benchmarks/benchmark_pipeline.py)
+**Requirements**: See [docs/benchmark-requirements.md](docs/benchmark-requirements.md)
+
+### Planned Metrics
+Once benchmarks are executable, the following metrics will be measured:
+
+**Operational Efficiency**
+- End-to-end latency
+- Stage-level latency (STT, translation, TTS, composition)
+- p50/p95 latency
+- Throughput (videos/minute)
+- Real-Time Factor (RTF = processing_time / media_duration)
+
+**Quality Metrics**
+- STOI (Speech Intelligibility)
+- PESQ (Perceptual Speech Quality)
+- SI-SDR (Signal-to-Distortion Ratio)
+- ΔSNR (Signal-to-Noise Ratio improvement)
+- Background preservation ratio
+
+**Reliability Metrics**
+- Success rate
+- Failure rate
+- API failure rate
+- Language coverage validation
+
+### Historical Estimates (from original README)
+*Note: These are estimates from the original README and have not been verified through actual benchmarking.*
+
+|| Video Length | Processing Time | Notes |
+||---|---|---|
+|| 30 seconds | ~25s | Whisper dominates |
+|| 1 minute | ~45s | Typical use case |
+|| 3 minutes | ~2 min 15s | Scales roughly linearly |
+|| 5 minutes | ~3 min 45s | Recommended max for gTTS |
+
+### Bottleneck Analysis
+**NOT MEASURED YET**
+
+Hypothesized bottlenecks based on code analysis:
+1. **Whisper transcription**: CPU-intensive, scales with audio duration
+2. **Translation API calls**: Network latency per segment
+3. **TTS generation**: Network latency per segment
+4. **Audio speed adjustment**: pydub processing overhead
+5. **Video composition**: MoviePy encoding overhead
+
+Actual bottleneck identification requires execution of the benchmark framework.
 
 ## ⚡ Performance Benchmarks
 
@@ -246,14 +290,62 @@ docker run -p 8501:8501 echolingo
 
 ---
 
+## ⚠️ Limitations
+
+### Audio Quality
+- **Background audio not preserved**: The pipeline completely replaces the original audio track, losing background music, ambient sounds, and intentional audio elements. See [docs/background-audio-audit.md](docs/background-audio-audit.md) for details.
+- **No noise reduction**: The pipeline does not include audio enhancement or noise reduction capabilities.
+- **TTS quality**: Uses gTTS which produces functional but robotic-sounding speech. For production-quality voices, upgrade to Coqui XTTS or ElevenLabs.
+
+### Performance
+- **Sequential processing**: All pipeline stages run sequentially with no parallelization.
+- **No batching**: Each segment is processed individually for translation and TTS.
+- **API latency**: Dependent on network calls to Google Translate and gTTS for each segment.
+- **CPU-bound**: Whisper transcription is CPU-intensive and may be slow on older hardware.
+
+### Language Support
+- **Translation quality**: Google Translate quality varies by language pair and content complexity.
+- **TTS availability**: Limited to languages supported by gTTS (constrains the 65-language support).
+- **No dialect support**: Does not distinguish between language dialects (e.g., Spanish vs. Latin American Spanish).
+
+### Technical
+- **No speaker diarization**: Cannot handle multi-speaker videos with distinct voices.
+- **No voice cloning**: Dubbed voice does not match original speaker characteristics.
+- **Limited video formats**: Primarily supports MP4 input/output.
+- **Model size**: Whisper base model (~150MB) requires initial download.
+- **Python version**: Requires Python 3.11+ (3.11 or 3.12 recommended for dependency compatibility).
+
+### Testing
+- **No end-to-end testing**: 65-language support is validated at configuration level only, not through actual video processing.
+- **No performance benchmarks**: Performance estimates are from original README, not measured.
+- **No quality metrics**: No objective audio quality measurements (STOI, PESQ, SI-SDR).
+
+---
+
 ## 🔮 Future Enhancements
 
+### Implemented
+- [x] **Cloud deployment** — HuggingFace Spaces (added `packages.txt` for FFmpeg support)
+- [x] **65-language configuration** — Centralized language configuration with validation
+- [x] **Benchmark framework** — Performance measurement infrastructure (not yet executable)
+- [x] **Language validation tests** — Automated 65-language configuration validation
+
+### Measured but Not Fixed
+- [ ] **Background audio preservation** — Currently not implemented (see limitations below)
+- [ ] **Performance bottlenecks** — Identified but not optimized due to benchmark execution issues
+
+### Proposed Improvements
 - [ ] **Premium TTS integration** — Coqui XTTS or ElevenLabs for natural-sounding voices
 - [ ] **Voice cloning** — preserve speaker characteristics across languages
 - [ ] **GPU acceleration** — CUDA-enabled Whisper for 10× faster transcription
 - [ ] **Batch processing** — queue multiple videos for sequential processing
-- [x] **Cloud deployment** — HuggingFace Spaces (added `packages.txt` for FFmpeg support)
 - [ ] **Speaker diarization** — handle multi-speaker videos with distinct voices
+- [ ] **Source separation** — Implement Spleeter/Demucs for background audio preservation
+- [ ] **Audio quality metrics** — Implement STOI, PESQ, SI-SDR measurements
+- [ ] **Streaming inference** — Real-time processing for live applications
+- [ ] **Model quantization** — Reduce model size for faster inference
+- [ ] **Parallel TTS generation** — Concurrent TTS API calls for faster processing
+- [ ] **Caching layer** — Cache translation and TTS results for repeated content
 
 ---
 
