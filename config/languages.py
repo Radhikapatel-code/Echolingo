@@ -6,7 +6,18 @@ including their compatibility with STT, translation, and TTS providers.
 
 from __future__ import annotations
 
-SUPPORTED_LANGUAGES: list[dict] = [
+from typing import TypedDict
+
+class LanguageConfig(TypedDict):
+    """Configuration for a single language."""
+    name: str
+    code: str
+    stt: bool
+    translation: bool
+    tts: bool
+    status: str
+
+SUPPORTED_LANGUAGES: list[LanguageConfig] = [
     {
         "name": "Afrikaans",
         "code": "af",
@@ -546,8 +557,12 @@ for lang in SUPPORTED_LANGUAGES:
         f"Language {lang} missing required fields"
 
 # Create convenience mappings
-LANGUAGE_CODE_TO_NAME: dict[str, str] = {lang["code"]: lang["name"] for lang in SUPPORTED_LANGUAGES}
-LANGUAGE_NAME_TO_CODE: dict[str, str] = {lang["name"]: lang["code"] for lang in SUPPORTED_LANGUAGES}
+LANGUAGE_CODE_TO_NAME: dict[str, str] = {
+    lang["code"]: lang["name"] for lang in SUPPORTED_LANGUAGES
+}
+LANGUAGE_NAME_TO_CODE: dict[str, str] = {
+    lang["name"]: lang["code"] for lang in SUPPORTED_LANGUAGES
+}
 
 # Filter for end-to-end supported languages (all three stages)
 END_TO_END_LANGUAGES: list[dict] = [

@@ -19,7 +19,7 @@ import tempfile
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 import platform
 
 # Add parent directory to path for imports
@@ -340,7 +340,7 @@ def save_results(results: list[BenchmarkResult], output_path: str) -> None:
     print(f"\nResults saved to: {output_path}")
 
 
-def main():
+def main() -> None:
     """Main entry point for benchmarking."""
     import argparse
     
